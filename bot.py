@@ -262,7 +262,7 @@ async def cmd_stats(msg: Message):
     )
 
 # ─── Web server ───────────────────────────────
-MINIAPP_HTML = Path("miniapp.html")
+MINIAPP_HTML = Path(__file__).parent / "miniapp.html"
 
 async def api_properties(request):
     """Отдаёт список активных объектов как JSON."""
@@ -289,10 +289,19 @@ async def api_photo(request):
 
 async def serve_miniapp(request):
     """Отдаёт Mini App HTML."""
-    if MINIAPP_HTML.exists():
-        return web.Response(text=MINIAPP_HTML.read_text(encoding="utf-8"),
-                            content_type="text/html")
-    return web.Response(text="<h1>miniapp.html not found</h1>", content_type="text/html")
+    try:
+        content = MINIAPP_HTML.read_text(encoding="utf-8")
+        return web.Response(
+            text=content,
+            content_type="text/html",
+            headers={"Cache-Control": "no-cache"}
+        )
+    except FileNotFoundError:
+        log.error(f"miniapp.html not found at: {MINIAPP_HTML.absolute()}")
+        return web.Response(
+            text=f"<h1>File not found: {MINIAPP_HTML.absolute()}</h1>",
+            content_type="text/html"
+        )
 
 # ─── Main ─────────────────────────────────────
 async def main():
